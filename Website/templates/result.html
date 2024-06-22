@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Results Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: #4c63af;
+            color: #fff;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn + .btn {
+            margin-left: 10px;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        li {
+            margin: 10px;
+            flex: 0 0 calc(33.333% - 20px);
+        }
+
+        .description {
+            color: #666;
+            font-size: 14px;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .description {
+            color: #666;
+            font-size: 12px; /* Change the font size to make it smaller */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Recommended Crops</h1>
+        <ul>
+            {% for crop in crops %}
+            <li>
+                <img src="{{ url_for('static', filename=crop.image) }}" alt="{{ crop.name }}" width="100" height="100">
+                <div>
+                    <strong>{{ crop.name|capitalize }}</strong>
+                    <p class="description">{{ crop.description }}</p>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        <a href="/" class="btn">Try again</a>
+        <a href="/yield" class="btn">Get Crop Stats</a>
+    </div>
+</body>
+</html>
+

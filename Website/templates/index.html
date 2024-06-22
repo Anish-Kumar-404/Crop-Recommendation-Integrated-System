@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #4c63af;
+            margin-top: 20px;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+            width: 70%;
+        }
+
+        .data-container {
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .data-container .form-heading {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .data-container label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .data-container input {
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .data-container button {
+            background-color: #4c63af;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .data-container button:hover {
+            background-color: #ff0000;
+        }
+
+        .location-section {
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-weight: 900;
+        }
+
+        .location-section button {
+            background-color: #4c63af;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .location-section button:hover {
+            background-color: #ff0000;
+        }
+    </style>
+    <title>Crop Recommendation Integrated System using ML</title>
+</head>
+<body>
+    <h1>Crop Recommendation Integrated System using ML</h1>
+    <div class="main-container">
+        <!-- Location Component -->
+        <div class="location-section" style="font-weight: 900;" >
+            Location:
+            <span id="locations"></span>
+             
+       
+        
+            
+            <input type="text" id="state" placeholder="Enter State or Use 'Auto Detect'">
+            <button onclick="autoDetectLocation()">Auto Detect Location</button>
+            
+        </div>
+
+        <div class="data-container">
+            <div class="form-heading">Soil Nutrients Levels</div>
+            <label for="Nitrogen">Nitrogen</label>
+            <input type="text" id="Nitrogen" placeholder="Enter Nitrogen level">
+            <label for="Potassium">Potassium</label>
+            <input type="text" id="Potassium" placeholder="Enter Potassium level">
+            <label for="Phosphorus">Phosphorus</label>
+            <input type="text" id="Phosphorus" placeholder="Enter Phosphorus level">
+            <label for="ph">PH</label>
+            <input type="text" id="ph" placeholder="Enter PH level">
+            <p style=" font-size: 20px; font-weight: bold; margin-bottom: 10px;"> Weather Data</p>
+            <label for="temperature">Temperature</label>
+            <input type="text" id="temperature" placeholder="Enter Temperature">
+            <label for="rainfall">Rainfall</label>
+            <input type="text" id="rainfall" placeholder="Enter Rainfall level">
+            <label for="humidity">Humidity</label>
+            <input type="text" id="humidity" placeholder="Enter Humidity Level">
+            <button type="button" onclick="getWeather()">Get Weather Data</button>
+            <button type="button" onclick="submitSoilForm()">Submit</button>
+        </div>
+    </div>
+
+    <script>
+         let currentLatitude = 0;
+        let currentLongitude = 0;
+
+        function autoDetectLocation() {
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    currentLatitude = position.coords.latitude;
+                    currentLongitude = position.coords.longitude;
+
+                    fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${currentLatitude}&longitude=${currentLongitude}&localityLanguage=en`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('state').value = data.localityInfo.administrative[1].name; // Typically, this would be the state or region
+                        alert('Location detected: ' + data.localityInfo.administrative[1].name);
+                    })
+                    .catch(error => {
+                        alert('Unable to retrieve location data: ' + error);
+                    });
+                }, function(error) {
+                    alert('Error occurred. Error code: ' + error.code);
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
+
+        function getWeather() {
+            const apiKey = '5a6167a0a92b9db899444c310fcacc1d'; // Replace with your actual API key
+            fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${currentLatitude}&lon=${currentLongitude}&appid=${apiKey}&units=metric`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('temperature').value = data.main.temp;
+                document.getElementById('humidity').value = data.main.humidity;
+                document.getElementById('rainfall').value = data.rain ? data.rain['1h'] : 0; // Check for rain data, default to 0 if none
+                alert('Weather details updated!');
+            })
+            .catch(error => {
+                console.error('Failed to retrieve weather data:', error);
+                alert('Failed to retrieve weather data');
+            });
+        }
+
+        function submitSoilForm() {
+            event.preventDefault();  // Prevent the form from submitting in the traditional way
+            const data = {
+                state: document.getElementById('state').value,
+                nitrogen: document.getElementById('Nitrogen').value,
+                potassium: document.getElementById('Potassium').value,
+                phosphorus: document.getElementById('Phosphorus').value,
+                ph: document.getElementById('ph').value,
+                temperature: document.getElementById('temperature').value,
+                rainfall: document.getElementById('rainfall').value,
+                humidity: document.getElementById('humidity').value
+            };
+
+            fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    console.error('No redirect URL provided.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }</script>
+</body>
+</html>

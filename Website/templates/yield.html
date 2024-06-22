@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .header {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background-color: #4c63af;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+            width: 70%;
+        }
+
+        .data-container {
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .data-container .form-heading {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .data-container label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .data-container input, .data-container select {
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .data-container select {
+            appearance: none;
+            background-color: white;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .data-container button {
+            background-color: #4c63af;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .data-container button:hover {
+            background-color: #ff0000;
+        }
+    </style>
+    <title>Crop Yield</title>
+</head>
+<body>
+    <div class="header">Crop Yield Calculation</div>
+
+    <div class="main-container">
+        <div class="data-container">
+            <div class="form-heading">Input Values</div>
+            <label for="crop">Crop</label>
+            <select name="crop" id="crop">
+                <!-- Options will be dynamically populated here -->
+            </select>
+
+            <br>
+            <label for="season">Seasons</label>
+            <select name="season" id="season">
+                <option value="" disabled selected hidden>Choose the cropping season</option>
+                <option value="kharif">Kharif</option>
+                <option value="rabi">Rabi</option>
+                <option value="winter">Winter</option>
+                <option value="summer">Summer</option>
+                <option value="whole_year">Whole Year</option>
+            </select>
+
+            <label for="area">Area</label>
+            <input type="text" name="area" id="area" placeholder="Enter total land area (hectares) for this crop">
+
+            <label for="ferti">Fertilizer</label>
+            <input type="text" name="ferti" id="ferti" placeholder="Enter total fertilizer used (kg) for the crop">
+
+            <br>
+            <label for="pesti">Pesticide</label>
+            <input type="text" name="pesti" id="pesti" placeholder="Enter total pesticide used (kg) for the crop">
+
+            <br>
+            <label for="rain">Rainfall</label>
+            <input type="text" name="rain" id="rain" placeholder="Enter annual rainfall (mm) in the crop region">
+
+            <br>
+            <button type="button" onclick="predictProduction()">Predict Production</button>
+
+            <br>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript code to populate the crop options dynamically
+        window.onload = function() {
+            var cropList = {{ crop_list | tojson | safe }};
+            var cropSelect = document.getElementById("crop");
+
+            // Clear existing options
+            cropSelect.innerHTML = "";
+
+            // Add default option
+            var defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.text = "Select a Crop";
+            cropSelect.appendChild(defaultOption);
+
+            // Add crops from crop list as options
+            cropList.forEach(function(crop) {
+                var option = document.createElement("option");
+                option.value = crop.name; // Assuming 'name' is the key for crop names
+                option.text = crop.name.charAt(0).toUpperCase() + crop.name.slice(1); // Capitalize first letter
+                cropSelect.appendChild(option);
+            });
+        };
+
+function predictProduction() {
+    // Get input values
+    var crop = document.getElementById("crop").value;
+    var season = document.getElementById("season").value;
+    var ferti = document.getElementById("ferti").value;
+    var pesti = document.getElementById("pesti").value;
+    var rain = document.getElementById("rain").value;
+    var area = document.getElementById("area").value;
+
+    // Validate input
+    if (crop === "" || season === "" || ferti === "" || pesti === "" || rain === "" || area === "") {
+        alert("Please fill in all fields.");
+        return;
+    }
+
+    // Construct data object with feature names
+    var data = {
+        crop: crop,
+        season: season,
+        area: area,
+        ferti: ferti,
+        pesti: pesti,
+        rain: rain,
+        feature_names: ["crop", "season", "ferti", "pesti", "rain", "area"]
+    };
+
+    // Send data to backend for prediction
+    fetch('/submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.production === undefined) {
+            throw new Error('Predicted production value is undefined');
+        }
+        alert("Predicted production: " + data.production);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("An error occurred. Please try again later.");
+    });
+}
+
+    </script>
+</body>
+</html>
